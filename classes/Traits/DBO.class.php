@@ -11,7 +11,7 @@
  *              GNU Public License v2 or later
  * @filesource
  */
-namespace Shop;
+namespace Shop\Traits;
 
 
 /**
@@ -180,6 +180,44 @@ trait DBO
         return $dt;
     }
 
-}
 
-?>
+    private static function dbQuery($sql, $ignore_errors = 0)
+    {
+        if (SHOP_isMinVersion()) {
+            return DB_query($sql, $ignore_errors);
+        } else {
+            return false;
+        }
+    }
+
+
+    private static function dbGetItem($table, $key, $where='')
+    {
+        if (SHOP_isMinVersion()) {
+            return DB_getItem($table, $key, $where);
+        } else {
+            return false;
+        }
+    }
+
+
+    private static function dbDelete($table, $key, $value)
+    {
+        if (SHOP_isMinVersion()) {
+            return DB_delete($table, $key, $value);
+        } else {
+            return false;
+        }
+    }
+
+
+    private static function dbCount($table, $key, $where)
+    {
+        if (SHOP_isMinVersion()) {
+            return DB_count($table, $key, $where);
+        } else {
+            return false;
+        }
+    }
+
+}

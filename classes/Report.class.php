@@ -773,7 +773,9 @@ class Report
         case 'order_id':
             if ($extra['isAdmin']) {
                 $url = SHOP_ADMIN_URL . '/index.php?order=' . $fieldvalue;
-                $opts = array('target' => '_blank');
+                $opts = array(
+                //    'target' => '_blank',
+                );
             } else {
                 $url = COM_buildUrl(SHOP_URL . '/order.php?mode=view&id=' . $fieldvalue);
                 $opts = array();
