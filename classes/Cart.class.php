@@ -25,6 +25,8 @@ use Shop\Models\OrderState;
  */
 class Cart extends Order
 {
+    use \Shop\Traits\DBO;       // import database operations
+
     /** Holder for custom information.
      * @var array */
     public $custom_info = array();
@@ -116,7 +118,7 @@ class Cart extends Order
         $retval = array();
         $sql = "SELECT order_id FROM {$_TABLES['shop.orders']}
             WHERE status = '" . OrderState::CART . "'";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res) {
             while ($A = DB_fetchArray($res, false)) {
                 $retval[$A['order_id']] = new self($A['order_id']);
@@ -648,13 +650,13 @@ class Cart extends Order
         if (COM_isAnonUser()) {
             $cart_id = self::getAnonCartID();
             // Check if the order exists but is not a cart.
-            $status = DB_getItem($_TABLES['shop.orders'], 'status',
+            $status = self::dbGetItem($_TABLES['shop.orders'], 'status',
                 "order_id = '" . DB_escapeString($cart_id) . "'");
             if ($status != NULL && $status != OrderState::CART) {
                 $cart_id = NULL;
             }
         } else {
-            $cart_id = DB_getItem(
+            $cart_id = self::dbGetItem(
                 $_TABLES['shop.orders'],
                 'order_id',
                 "uid = $uid AND status = '" . OrderState::CART .
@@ -662,10 +664,12 @@ class Cart extends Order
             );
             if (!empty($cart_id) && !isset($read_cart[$uid])) {
                 // For logged-in usrs, delete superfluous carts
-                DB_query("DELETE FROM {$_TABLES['shop.orders']}
+                self::dbQuery(
+                    "DELETE FROM {$_TABLES['shop.orders']}
                     WHERE uid = $uid
                     AND status = '" . OrderState::CART . "'
-                    AND order_id <> '" . DB_escapeString($cart_id) . "'");
+                    AND order_id <> '" . DB_escapeString($cart_id) . "'"
+                );
             }
             $read_cart[$uid] = true;
         }
@@ -741,7 +745,7 @@ class Cart extends Order
             $sql .= " AND order_id <> '" . DB_escapeString($save) . "'";
             $msg .= " except $save";
         }
-        DB_query($sql);
+        self::dbQuery($sql);
         SHOP_log($msg, SHOP_LOG_DEBUG);
     }
 

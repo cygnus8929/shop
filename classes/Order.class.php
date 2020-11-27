@@ -5,7 +5,7 @@
  * @author      Lee Garner <lee@leegarner.com>
  * @copyright   Copyright (c) 2009-2020 Lee Garner <lee@leegarner.com>
  * @package     shop
- * @version     v1.3.1
+ * @version     v1.3.0
  * @since       v0.7.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
@@ -23,6 +23,8 @@ use Shop\Models\CustomInfo;
  */
 class Order
 {
+    use \Shop\Traits\DBO;       // import database operations
+
     /** Array of order objects used by getInstance().
      * @var array */
     private static $orders = array();
@@ -329,7 +331,7 @@ class Order
             FROM {$_TABLES['shop.orders']} ord
             WHERE ord.order_id='{$this->order_id}'";
         //echo $sql;die;
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if (!$res) {
             return false;    // requested order not found
         }
@@ -345,7 +347,7 @@ class Order
         $items = array();
         $sql = "SELECT * FROM {$_TABLES['shop.orderitems']}
                 WHERE order_id = '{$this->order_id}'";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res) {
             while ($A = DB_fetchArray($res, false)) {
                 $items[$A['id']] = $A;
@@ -385,7 +387,7 @@ class Order
             $uid_where
             GROUP BY ord.order_id
             HAVING amtDue > 0";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         while ($A = DB_fetchArray($res, false)) {
             $retval[$A['order_id']] = new self();
             $retval[$A['order_id']]->setVars($A);
@@ -753,7 +755,7 @@ class Order
             DELETE FROM {$_TABLES['shop.orderitems']} WHERE order_id = '$order_id';
             DELETE FROM {$_TABLES['shop.orders']} WHERE order_id = '$order_id';
             COMMIT;";
-        DB_query($sql);
+        self::dbQuery($sql);
         return DB_error() ? false : true;
     }
 
@@ -840,7 +842,7 @@ class Order
         $sql = $sql1 . implode(', ', $fields) . $sql2;
         //echo $sql;die;
         //SHOP_log("Save: " . $sql, SHOP_LOG_DEBUG);
-        DB_query($sql);
+        self::dbQuery($sql);
         $this->clearInstance();
         $this->isNew = false;
         $this->tainted = false;
@@ -865,7 +867,7 @@ class Order
         }
         $sql = "UPDATE {$_TABLES['shop.orders']} SET $vals
             WHERE order_id = '" . DB_escapeString($this->order_id) . "'";
-        DB_query($sql);
+        self::dbQuery($sql);
         return $this;
     }
 
@@ -1404,8 +1406,8 @@ class Order
                     order_seq = @seqno
                 WHERE order_id = '$db_order_id';
                 COMMIT;";
-            DB_query($sql);
-            $this->order_seq = (int)DB_getItem(
+            self::dbQuery($sql);
+            $this->order_seq = (int)self::dbGetItem(
                 $_TABLES['shop.orders'],
                 'order_seq',
                 "order_id = '{$db_order_id}'"
@@ -1415,7 +1417,7 @@ class Order
             $sql = "UPDATE {$_TABLES['shop.orders']} SET
                     status = '". DB_escapeString($newstatus) . "'
                 WHERE order_id = '$db_order_id';";
-            DB_query($sql);
+            self::dbQuery($sql);
         }
         //echo $sql;die;
         //SHOP_log($sql, SHOP_LOG_DEBUG);
@@ -1464,7 +1466,7 @@ class Order
             order_id = '$order_id',
             message = '" . DB_escapeString($msg) . "',
             ts = UNIX_TIMESTAMP()";
-        DB_query($sql);
+        self::dbQuery($sql);
         return !DB_error();
     }
 
@@ -1486,7 +1488,7 @@ class Order
                 LIMIT 1";
         //echo $sql;die;
         if (!DB_error()) {
-            $L = DB_fetchArray(DB_query($sql), false);
+            $L = DB_fetchArray(self::dbQuery($sql), false);
             if (!empty($L)) {
                 $dt = new \Date($L['ts'], $_USER['tzid']);
                 $L['ts'] = $dt->format($_SHOP_CONF['datetime_fmt'], true);
@@ -1818,7 +1820,7 @@ class Order
         $log = array();
         $sql = "SELECT * FROM {$_TABLES['shop.order_log']}
             WHERE order_id = '" . DB_escapeString($this->order_id) . "'";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         while ($L = DB_fetchArray($res, false)) {
             $log[] = $L;
         }
@@ -1983,7 +1985,7 @@ class Order
         }
         do {
             $id = COM_sanitizeID($func());
-        } while (DB_getItem($_TABLES['shop.orders'], 'order_id', "order_id = '$id'") !== NULL);
+        } while (self::dbGetItem($_TABLES['shop.orders'], 'order_id', "order_id = '$id'") !== NULL);
         return $id;
     }
 
@@ -2564,7 +2566,7 @@ class Order
         global $_TABLES;
 
         return (
-            (int)DB_getItem(
+            (int)self::dbGetItem(
                 $_TABLES['shop.orders'],
                 'count(*)',
                 "status <> 'cart'"
@@ -2711,10 +2713,10 @@ class Order
     {
         global $_TABLES;
 
-        DB_query("TRUNCATE {$_TABLES['shop.orders']}");
-        DB_query("TRUNCATE {$_TABLES['shop.orderitems']}");
-        DB_query("TRUNCATE {$_TABLES['shop.oi_opts']}");
-        DB_query("TRUNCATE {$_TABLES['shop.order_log']}");
+        self::dbQuery("TRUNCATE {$_TABLES['shop.orders']}");
+        self::dbQuery("TRUNCATE {$_TABLES['shop.orderitems']}");
+        self::dbQuery("TRUNCATE {$_TABLES['shop.oi_opts']}");
+        self::dbQuery("TRUNCATE {$_TABLES['shop.order_log']}");
     }
 
 
@@ -3667,7 +3669,7 @@ class Order
         } else {
             $sql = "SELECT order_id
                 FROM {$_TABLES['shop.orders']}";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             $A = DB_fetchAll($res, false);
         }
         $decimals = array();
@@ -3701,7 +3703,7 @@ class Order
                     $sql = "UPDATE {$_TABLES['shop.orderitems']}
                         SET tax = $tax
                         WHERE id = '{$Item->getID()}'";
-                    DB_query($sql);
+                    self::dbQuery($sql);
                 }
             }
             $order_total = $net_taxable + $net_nontax + $shipping + $handling + $tax;
@@ -3724,7 +3726,7 @@ class Order
                     net_nontax = $net_nontax,
                     net_taxable = $net_taxable
                     WHERE order_id = '{$Ord->getOrderID()}'";
-                DB_query($sql);*/
+                self::dbQuery($sql);*/
             }
         }
         $this->clearInstance();
