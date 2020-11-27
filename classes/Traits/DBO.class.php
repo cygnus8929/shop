@@ -1,11 +1,12 @@
 <?php
 /**
  * DataBase Object trait to provide common functions for other classes.
+ * Included wrapper for DB_* functions in case the schema is not current.
  *
  * @author      Lee Garner <lee@leegarner.com>
  * @copyright   Copyright (c) 2019-2020 Lee Garner <lee@leegarner.com>
  * @package     shop
- * @version     v1.2.0
+ * @version     v1.3.0
  * @since       v1.2.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
@@ -181,6 +182,13 @@ trait DBO
     }
 
 
+    /**
+     * Wrapper for `DB_query()`.
+     *
+     * @param   string  $sql    SQL query
+     * @param   boolean $ig_err True to ignore errors (not used)
+     * @return  mixed   DB_query() result or false if schema is not current
+     */
     private static function dbQuery($sql, $ignore_errors = 0)
     {
         if (SHOP_isMinVersion()) {
@@ -191,6 +199,14 @@ trait DBO
     }
 
 
+    /**
+     * Wrapper for `DB_getItem()`.
+     *
+     * @param   string  $table  Table name
+     * @param   string  $key    Field name
+     * @param   string  $where  Where clause
+     * @return      DB_getItem() result, false if schema is not current
+     */
     private static function dbGetItem($table, $key, $where='')
     {
         if (SHOP_isMinVersion()) {
@@ -201,6 +217,14 @@ trait DBO
     }
 
 
+    /**
+     * Wrapper for `DB_delete()`.
+     *
+     * @param   string  $table  Table name
+     * @param   string  $key    Field name
+     * @param   mixed   $value  Field value
+     * @return      DB_delete() result, false if schema is not current
+     */
     private static function dbDelete($table, $key, $value)
     {
         if (SHOP_isMinVersion()) {
@@ -211,7 +235,15 @@ trait DBO
     }
 
 
-    private static function dbCount($table, $key, $where)
+    /**
+     * Wrapper for `DB_count()`.
+     *
+     * @param   string  $table  Table name
+     * @param   string  $key    Optional field name
+     * @param   string  $where  Optional where clause
+     * @return  integer     DB_count() result, false if schema is not current
+     */
+    private static function dbCount($table, $key='', $where='')
     {
         if (SHOP_isMinVersion()) {
             return DB_count($table, $key, $where);
