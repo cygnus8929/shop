@@ -189,13 +189,20 @@ trait DBO
      * @param   boolean $ig_err True to ignore errors (not used)
      * @return  mixed   DB_query() result or false if schema is not current
      */
-    private static function dbQuery($sql, $ignore_errors = 0)
+    private static function dbQuery($sql, $ig_err = 1)
     {
         if (SHOP_isMinVersion()) {
-            return DB_query($sql, $ignore_errors);
+            $res = DB_query($sql, 1);
+            if (DB_error()) {
+                SHOP_log(
+                    __CLASS__ . '::' . __FUNCTION__ .
+                    " SQL error: $sql"
+                );
+            }
         } else {
-            return false;
+            $res = false;
         }
+        return $res;
     }
 
 
