@@ -398,6 +398,8 @@ class Catalog
             if (!$P->canDisplay()) {
                 continue;
             }
+            $P->setVariant();
+
             $prodrows++;
             $T->set_var(array(
                 'item_id'       => $P->getID(),
@@ -411,7 +413,7 @@ class Catalog
                 'qty_onhand'    => $P->getOnhand(),
                 'has_discounts' => $P->hasDiscounts() ? 'true' : '',
                 'price'         => $P->getDisplayPrice(),
-                'orig_price'    => $P->getDisplayPrice($P->getPrice()),
+                'orig_price'    => $P->getDisplayPrice($P->getBasePrice()),
                 'on_sale'       => $P->isOnSale(),
                 'small_pic'     => $P->getImage('', 200)['url'],
                 'onhand'        => $P->trackOnhand() ? $P->getOnhand() : '',
@@ -421,7 +423,6 @@ class Catalog
                 'rating_bar'    => $P->ratingBar(true),
                 'oos'           => !$P->isInStock(),
             ) );
-
             if ($isAdmin) {
                 $T->set_var(array(
                     'is_admin'  => 'true',
