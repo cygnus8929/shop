@@ -20,6 +20,8 @@ namespace Shop;
  */
 class State extends RegionBase
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** Table key.
      * @var string */
     protected static $TABLE = 'shop.states';
@@ -135,7 +137,7 @@ class State extends RegionBase
             }
         }
         $sql .= ' LIMIT 1';
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res && DB_numRows($res) == 1) {
             $A = DB_fetchArray($res, false);
         } else {
@@ -393,7 +395,7 @@ class State extends RegionBase
                     AND r.region_enabled = 1";
             }
             $sql .= " ORDER BY s.state_name ASC";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $retval[$A['iso_code']] = new self($A);
             }
@@ -489,7 +491,7 @@ class State extends RegionBase
         $sql = $sql1 . $sql2 . $sql3;
         //var_dump($this);die;
         //echo $sql;die;
-        DB_query($sql, 1);  // suppress errors, show nice error message instead
+        self::dbQuery($sql, 1);  // suppress errors, show nice error message instead
         if (!DB_error()) {
             if ($this->getID() == 0) {
                 $this->setID(DB_insertID());
@@ -692,7 +694,7 @@ class State extends RegionBase
             LEFT JOIN {$_TABLES['shop.countries']} c
                 ON c.country_id = s.country_id
             WHERE c.alpha2='$alpha2' AND  s.state_name='$state_name'";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res) {
             $A = DB_fetchArray($res, false);
             $retval = $A['iso_code'];

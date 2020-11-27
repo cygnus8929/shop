@@ -21,6 +21,8 @@ use Shop\Models\OrderState;
  */
 class orderlist extends \Shop\Report
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** Report icon name
      * @var string */
     protected $icon = 'list';
@@ -253,7 +255,7 @@ class orderlist extends \Shop\Report
                 FROM {$_TABLES['shop.orders']} ord
                 LEFT JOIN {$_TABLES['shop.orderitems']} itm
                     ON itm.order_id = ord.order_id {$query_arr['default_filter']}";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             if ($res) {
                 $A = DB_fetchArray($res, false);
                 $total_sales = $A['total_sales'];
@@ -280,7 +282,7 @@ class orderlist extends \Shop\Report
             // Assemble the SQL manually from the Admin list components
             $sql .= ' ' . $query_arr['default_filter'];
             $sql .= ' ORDER BY ' . $defsort_arr['field'] . ' ' . $defsort_arr['direction'];
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             $T->set_block('report', 'ItemRow', 'row');
             while ($A = DB_fetchArray($res, false)) {
                 if (!empty($A['billto_company'])) {

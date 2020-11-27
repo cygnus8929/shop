@@ -5,7 +5,7 @@
  * @author      Lee Garner <lee@leegarner.com>
  * @copyright   Copyright (c) 2020 Lee Garner <lee@leegarner.com>
  * @package     shop
- * @version     v1.1.0
+ * @version     v1.3.0
  * @since       v1.1.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
@@ -20,6 +20,8 @@ namespace Shop;
  */
 class RegionBase
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** Error messages returned to the caller.
      * @var array */
     protected $messages = array();
@@ -66,7 +68,7 @@ class RegionBase
             // Ignore SQL errors since varname is indeterminate
             //echo $sql;die;
             //COM_errorLog($sql);
-            DB_query($sql, 1);
+            self::dbQuery($sql, 1);
             if (DB_error()) {
                 SHOP_log("SQL error: $sql", SHOP_LOG_ERROR);
                 return $oldvalue;

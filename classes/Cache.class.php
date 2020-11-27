@@ -20,6 +20,8 @@ namespace Shop;
  */
 class Cache
 {
+    use \Shop\Traits\DBO;   // common DB functions
+
     /** Base tag added to all cache item IDs.
      * @const string */
     const TAG = 'shop';
@@ -58,7 +60,7 @@ class Cache
                     expires = $exp,
                     data = '$data',
                     tags = '$tags'";
-            DB_query($sql);
+            self::dbQuery($sql);
             return;
         }
 
@@ -86,7 +88,7 @@ class Cache
         $key = self::makeKey($key);
         if (version_compare(GVERSION, self::MIN_GVERSION, '<')) {
             global $_TABLES;
-            DB_delete($_TABLES['shop.cache'], 'key', DB_escapeString($key));
+            self::dbDelete($_TABLES['shop.cache'], 'key', DB_escapeString($key));
             return;
         }
         return \glFusion\Cache\Cache::getInstance()->delete($key);
@@ -115,7 +117,7 @@ class Cache
             }
             $where = implode(' AND ', $wheres);
             $sql = "DELETE FROM {$_TABLES['shop.cache']} WHERE ($where);";
-            DB_query($sql);
+            self::dbQuery($sql);
             return;
         }
 
@@ -149,7 +151,7 @@ class Cache
             global $_TABLES;
             $key = DB_escapeString($key);
             $exp = time();
-            $data = DB_getItem(
+            $data = self::dbGetItem(
                 $_TABLES['shop.cache'],
                 'data',
                 "cache_key = '$key' AND expires >= $exp"
@@ -194,7 +196,7 @@ class Cache
         if (version_compare(GVERSION, self::MIN_GVERSION, '<')) {
             $sql = "DELETE FROM {$_TABLES['shop.cache']}
                 WHERE expires < " . time();
-            DB_query($sql);
+            self::dbQuery($sql);
         }
     }
 

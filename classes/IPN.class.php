@@ -43,6 +43,7 @@ if (!isset($_SHOP_CONF['sys_test_ipn'])) $_SHOP_CONF['sys_test_ipn'] = false;
  */
 class IPN
 {
+    use \Shop\Traits\DBO;   // common DB functions
     const FAILURE_UNKNOWN = 0;
     const FAILURE_VERIFY = 1;
     const FAILURE_COMPLETED = 2;
@@ -866,7 +867,7 @@ class IPN
         // See if an order already exists for this transaction.
         // If so, load it and update the status. If not, continue on
         // and create a new order
-        $order_id = DB_getItem(
+        $order_id = self::dbGetItem(
             $_TABLES['shop.orders'],
             'order_id',
             "pmt_txn_id='" . DB_escapeString($this->txn_id) . "'"
@@ -1011,7 +1012,7 @@ class IPN
         if (empty($order_id)) {
             $parent_txn = $this->getParentTxnId();
             if ($parent_txn != '') {
-                $order_id = DB_getItem(
+                $order_id = self::dbGetItem(
                     $_TABLES['shop.orders'],
                     'order_id',
                     "pmt_txn_id = '" . DB_escapeString($parent_txn_id) . "'"

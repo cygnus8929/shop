@@ -20,6 +20,8 @@ namespace Shop;
  */
 class Region extends RegionBase
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** Table key.
      * @var string */
     protected static $TABLE = 'shop.regions';
@@ -79,7 +81,7 @@ class Region extends RegionBase
             return $instances[$id];
         } else {
             $sql = "SELECT * FROM {$_TABLES['shop.regions']} WHERE region_id = $id";;
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             if ($res && DB_numRows($res) == 1) {
                 $A = DB_fetchArray($res, false);
             } else {
@@ -212,7 +214,7 @@ class Region extends RegionBase
                 $sql .= ' WHERE region_enabled =1';
             }
             $sql .= ' ORDER BY region_name ASC';
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $retval[$A['region_id']] = new self($A);
             }
@@ -299,7 +301,7 @@ class Region extends RegionBase
         //var_dump($this);die;
         //echo $sql;die;
         SHOP_log($sql, SHOP_LOG_DEBUG);
-        DB_query($sql);
+        self::dbQuery($sql);
         if (!DB_error()) {
             if ($this->getID() == 0) {
                 $this->setID(DB_insertID());

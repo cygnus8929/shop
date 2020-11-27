@@ -13,6 +13,7 @@
  */
 namespace Shop;
 use Shop\Models\OrderState;
+use Shop\Report;
 
 
 /**
@@ -21,6 +22,8 @@ use Shop\Models\OrderState;
  */
 class Payment
 {
+    use \Shop\Traits\DBO;   // common DB functions
+
     /** Payment record ID in the database.
      * @var integer */
     private $pmt_id = 0;
@@ -101,7 +104,7 @@ class Payment
 
         $sql = "SELECT * FROM {$_TABLES['shop.payments']}
             WHERE pmt_id = " . (int)$id;
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res) {
             $A = DB_fetchArray($res, true);
         } else {
@@ -123,7 +126,7 @@ class Payment
 
         $sql = "SELECT * FROM {$_TABLES['shop.payments']}
             WHERE pmt_ref_id = '" . DB_escapeString($ref_id) . "'";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res) {
             $A = DB_fetchArray($res, true);
         } else {
@@ -413,7 +416,7 @@ class Payment
             pmt_comment = '" . DB_escapeString($this->comment) . "',
             pmt_uid = " . (int)$this->uid;
         //echo $sql;die;
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if (!DB_error()) {
             $this->setPmtId(DB_insertID());
             $Order = Order::getInstance($this->getOrderID());
@@ -446,7 +449,7 @@ class Payment
         $sql = "SELECT * FROM {$_TABLES['shop.ipnlog']}
             ORDER BY ts ASC";
             //WHERE id = 860
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         $Pmt = new self;
         $done = array();        // Avoid duplicates
         while ($A = DB_fetchArray($res, false)) {
@@ -473,7 +476,7 @@ class Payment
             } elseif ($ipn->getOrderId() != '') {
                 $order_id = $ipn->getOrderID();
             } elseif ($ipn->getTxnId() != '') {
-                $order_id = DB_getItem(
+                $order_id = self::dbGetItem(
                     $_TABLES['shop.orders'],
                     'order_id',
                     "pmt_txn_id = '" . DB_escapeString($ipn->getTxnId()) . "'"
@@ -498,7 +501,7 @@ class Payment
         // Get all the "payments" via coupons.
         $sql = "SELECT * FROM {$_TABLES['shop.coupon_log']}
             WHERE msg = 'gc_applied'";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         while ($A = DB_fetchArray($res, false)) {
             $Pmt = new self;
             $Pmt->setRefID(uniqid())
@@ -534,7 +537,7 @@ class Payment
         $sql = "SELECT * FROM {$_TABLES['shop.payments']}
             WHERE pmt_order_id = '$order_id'
             ORDER BY pmt_ts ASC";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         while ($A = DB_fetchArray($res, false)) {
             $P[$order_id][] = new self($A);
         }
@@ -608,7 +611,7 @@ class Payment
     {
         global $_TABLES;
 
-        DB_query("TRUNCATE {$_TABLES['shop.payments']}");
+        self::dbQuery("TRUNCATE {$_TABLES['shop.payments']}");
     }
 
 
@@ -623,7 +626,7 @@ class Payment
     {
         global $LANG_SHOP;
 
-        $R = \Shop\Report::getInstance('payment');
+        $R = Report::getInstance('payment');
         if ($R === NULL) {
             return '';
         }

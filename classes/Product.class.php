@@ -22,7 +22,7 @@ use Shop\Models\Views;
  */
 class Product
 {
-    use \Shop\Traits\DBO;        // Import database operations
+    use \Shop\Traits\DBO;    // Import common DB actions
 
     /** Table key. Blank value will cause no action to be taken.
      * @var string */
@@ -454,7 +454,7 @@ class Product
             $sql = "SELECT * FROM {$_TABLES['shop.products']}
                 WHERE name = '$item_id'
                 LIMIT 1";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             $A = DB_fetchArray($res, false);
             if (isset($A['id'])) {
                 Cache::set($cache_key, $A, array('products'));
@@ -487,7 +487,7 @@ class Product
                 $sql = "SELECT * FROM {$_TABLES['shop.products']}
                     WHERE id  = $id
                     LIMIT 1";
-                $res = DB_query($sql);
+                $res = self::dbQuery($sql);
                 $A = DB_fetchArray($res, false);
                 if (isset($A['id'])) {
                     Cache::set($cache_key, $A, array('products'));
@@ -515,7 +515,7 @@ class Product
         if (!is_array($retval)) {
             $retval = array();
             $sql = "SELECT id FROM {$_TABLES['shop.products']} WHERE cat_id = $cat_id";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             if ($res) {
                 while ($A = DB_fetchArray($res, false)) {
                     $retval[] = $A['id'];
@@ -720,7 +720,7 @@ class Product
         $cache_key = self::_makeCacheKey($id);
         //$row = Cache::get($cache_key);
         //if ($row === NULL) {
-            $result = DB_query("SELECT *
+            $result = self::dbQuery("SELECT *
                         FROM {$_TABLES['shop.products']}
                         WHERE id='$id'");
             if (!$result || DB_numRows($result) != 1) {
@@ -1033,7 +1033,7 @@ class Product
         //options='$options',
         $sql = $sql1 . $sql2 . $sql3;
         //echo $sql;die;
-        DB_query($sql, 1);
+        self::dbQuery($sql, 1);
         if (!DB_error()) {
             if ($this->isNew) {
                 $this->id = DB_insertID();
@@ -1052,7 +1052,7 @@ class Product
                     $img_id = (int)$img_id;
                     if ($this->Images[$img_id]['orderby'] != $orderby) {
                         $this->Images[$img_id]['orderby'] = $orderby;
-                        DB_query("UPDATE {$_TABLES['shop.images']}
+                        self::dbQuery("UPDATE {$_TABLES['shop.images']}
                             SET orderby = $orderby
                             WHERE img_id = $img_id");
                     }
@@ -1897,7 +1897,7 @@ class Product
         $T->set_var('javascript', $JT->finish($JT->get_var('output')));
 
         // Update the hit counter
-        DB_query("UPDATE {$_TABLES['shop.products']}
+        self::dbQuery("UPDATE {$_TABLES['shop.products']}
                 SET views = views + 1
                 WHERE id = '$prod_id'");
 
@@ -2473,7 +2473,7 @@ class Product
                     WHERE id = '{$this->id}'";
             Cache::clear('products');
             Cache::clear('sitemap');
-            DB_query($sql, 1);
+            self::dbQuery($sql, 1);
             if (DB_error()) {
                 SHOP_log("SQL errror: $sql", SHOP_LOG_ERROR);
                 $status = 1;
@@ -3204,7 +3204,7 @@ class Product
                 FROM {$_TABLES['shop.images']}
                 WHERE product_id='". $this->id . "'
                 ORDER BY orderby ASC";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($prow = DB_fetchArray($res, false)) {
                 if (self::imageExists($prow['filename'])) {
                     $this->Images[$prow['img_id']] = $prow;
@@ -3258,7 +3258,7 @@ class Product
             rating = $rating,
             votes = $votes
             WHERE id = $id";
-        DB_query($sql);
+        self::dbQuery($sql);
         Cache::clear('products');
         return DB_error() ? false : true;
     }
@@ -3295,7 +3295,7 @@ class Product
         if ($retval === NULL) {
             $sql = "SELECT * FROM {$_TABLES['shop.products']}
                 ORDER BY name ASC";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $retval[$A['id']] = self::getInstance($A);
             }
@@ -3513,7 +3513,7 @@ class Product
         }
         if (!empty($sql_vals)) {
             $sql_vals = implode(', ', $sql_vals);
-            DB_query("UPDATE {$_TABLES['shop.products']} SET " . $sql_vals .
+            self::dbQuery("UPDATE {$_TABLES['shop.products']} SET " . $sql_vals .
                 " WHERE id IN ($ids)");
             if (DB_error()) {
                 return false;
@@ -3524,7 +3524,7 @@ class Product
         // ones for all submitted products.
         if (isset($A['selected_cats']) && !empty($A['selected_cats'])) {
             $sql = "DELETE FROM {$_TABLES['shop.prodXcat']} WHERE product_id in ($ids)";
-            $res = DB_query($sql, 1);
+            $res = self::dbQuery($sql, 1);
             if (!DB_error()) {
                 $prod_ids = explode(',', $A['prod_ids']);
                 $cat_ids = explode('|', $A['selected_cats']);
@@ -3538,7 +3538,7 @@ class Product
                 }
                 $sql = "INSERT IGNORE INTO {$_TABLES['shop.prodXcat']}
                     (product_id, cat_id) VALUES " . implode(',', $vals);
-                DB_query($sql, 1);
+                self::dbQuery($sql, 1);
             }
         }
 
@@ -3978,7 +3978,7 @@ class Product
         global $_TABLES, $LANG_SHOP;
         $errors = array();
         $sku = DB_escapeString($this->name);
-        $sku_err = (int)DB_getItem(
+        $sku_err = (int)self::dbGetItem(
             $_TABLES['shop.products'],
             'count(*)',
             "name = '$sku' AND id <> {$this->id}"
@@ -4002,7 +4002,7 @@ class Product
     {
         global $_TABLES;
 
-        return (int)DB_getItem($_TABLES['shop.products'], 'id');
+        return (int)self::dbGetItem($_TABLES['shop.products'], 'id');
     }
 
 
@@ -4148,13 +4148,13 @@ class Product
         if (!empty($add)) {
             $sql = "INSERT IGNORE INTO {$_TABLES['shop.prodXcat']} VALUES " .
                 implode(',', $add);
-            DB_query($sql);
+            self::dbQuery($sql);
         }
         if (!empty($rem)) {
             $sql = "DELETE FROM {$_TABLES['shop.prodXcat']} WHERE
                 product_id = '{$this->id}' AND
                 cat_id in (" . implode(',', $rem) . ')';
-            DB_query($sql);
+            self::dbQuery($sql);
         }
         return $this;
     }

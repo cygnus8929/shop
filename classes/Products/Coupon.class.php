@@ -25,6 +25,8 @@ use Shop\Template;
  */
 class Coupon extends \Shop\Product
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** Maximum possible expiration date.
      * Used as a default for purchased coupons.
      * @const string */
@@ -191,7 +193,7 @@ class Coupon extends \Shop\Product
             // Make sure there are no duplicates
             $code = self::generate($options);
             $code = DB_escapeString($code);
-        } while (DB_count($_TABLES['shop.coupons'], 'code', $code));
+        } while (self::dbCount($_TABLES['shop.coupons'], 'code', $code));
 
         $uid = (int)$uid;
         if (empty($exp)) {
@@ -207,7 +209,7 @@ class Coupon extends \Shop\Product
                 balance = $amount,
                 purchased = UNIX_TIMESTAMP(),
                 expires = '$exp'";
-        DB_query($sql);
+        self::dbQuery($sql);
         return DB_error() ? false : $code;
     }
 
@@ -237,7 +239,7 @@ class Coupon extends \Shop\Product
         $code = DB_escapeString($code);
         $sql = "SELECT * FROM {$_TABLES['shop.coupons']}
                 WHERE code = '$code'";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if (DB_numRows($res) == 0) {
             SHOP_log("Attempting to redeem coupon $code, not found in database", SHOP_LOG_ERROR);
             return array(
@@ -256,7 +258,7 @@ class Coupon extends \Shop\Product
         }
         $amount = (float)$A['amount'];
         if ($amount > 0) {
-            DB_query("UPDATE {$_TABLES['shop.coupons']} SET
+            self::dbQuery("UPDATE {$_TABLES['shop.coupons']} SET
                     redeemer = $uid,
                     redeemed = UNIX_TIMESTAMP()
                     WHERE code = '$code'");
@@ -323,7 +325,7 @@ class Coupon extends \Shop\Product
                     SET balance = $bal
                     WHERE code = '$code';";
             self::writeLog($code, $uid, $applied, 'gc_applied', $order_id);
-            DB_query($sql);
+            self::dbQuery($sql);
             if ($remain == 0) break;
         }
 
@@ -513,7 +515,7 @@ class Coupon extends \Shop\Product
             }
             $sql .= " ORDER BY redeemed ASC";
             //echo $sql;die;
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $coupons[] = $A;
             }
@@ -604,7 +606,7 @@ class Coupon extends \Shop\Product
                 (code, uid, order_id, ts, amount, msg)
                 VALUES
                 ('{$code}', '{$uid}', '{$order_id}', UNIX_TIMESTAMP(), '$amount', '{$msg}');";
-        DB_query($sql);
+        self::dbQuery($sql);
     }
 
 
@@ -629,7 +631,7 @@ class Coupon extends \Shop\Product
             $sql .= " AND code = '" . DB_escapeString($code) . "'";
         }
         $sql .= ' ORDER BY ts DESC';
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res) {
             while ($A = DB_fetchArray($res, false)) {
                 $log[] = $A;
@@ -732,7 +734,7 @@ class Coupon extends \Shop\Product
         } else {
             $log_code = 'gc_unvoided';
         }
-        DB_query($sql);
+        self::dbQuery($sql);
         if (!DB_error()) {
             self::writeLog($code, $_USER['uid'], 0, $log_code);
             return true;
@@ -761,13 +763,13 @@ class Coupon extends \Shop\Product
             $code = DB_escapeString($code);
             $sql .= "WHERE balance > 0 AND code =  '$code'";
         }
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         while ($A = DB_fetchArray($res, false)) {
             $c = DB_escapeString($A['code']);
             $sql1 = "UPDATE {$_TABLES['shop.coupons']}
                 SET balance = 0
                 WHERE code = '$c';";
-            DB_query($sql1);
+            self::dbQuery($sql1);
             self::writeLog($c, $A['redeemer'], $A['balance'], 'gc_expired');
         }
         if (DB_numRows($res) > 0) {
@@ -803,8 +805,8 @@ class Coupon extends \Shop\Product
     {
         global $_TABLES;
 
-        DB_query("TRUNCATE {$_TABLES['shop.coupons']}");
-        DB_query("TRUNCATE {$_TABLES['shop.coupon_log']}");
+        self::dbQuery("TRUNCATE {$_TABLES['shop.coupons']}");
+        self::dbQuery("TRUNCATE {$_TABLES['shop.coupon_log']}");
     }
 
 

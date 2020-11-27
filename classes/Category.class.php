@@ -21,7 +21,7 @@ namespace Shop;
  */
 class Category
 {
-    use \Shop\Traits\DBO;        // Import database operations
+    use \Shop\Traits\DBO;    // Import common DB actions
 
     /** Key field name.
      * @var string */
@@ -183,7 +183,7 @@ class Category
             return;
         }
 
-        $result = DB_query("SELECT *
+        $result = self::dbQuery("SELECT *
                     FROM {$_TABLES['shop.categories']}
                     WHERE cat_id='$id'");
         if (!$result || DB_numRows($result) != 1) {
@@ -278,7 +278,7 @@ class Category
             //echo $sql;die;
             //COM_errorLog($sql);
             SHOP_log($sql, SHOP_LOG_DEBUG);
-            DB_query($sql);
+            self::dbQuery($sql);
             if (!DB_error()) {
                 if ($this->isNew) {
                     $this->cat_id = DB_insertID();
@@ -329,7 +329,7 @@ class Category
                     WHERE cat_id IN ($upd_cats)";
             Cache::clear('categories');
             Cache::clear('sitemap');
-            DB_query($sql);
+            self::dbQuery($sql);
         }
     }
 
@@ -370,7 +370,7 @@ class Category
         }
 
         if ($del_db) {
-            DB_query("UPDATE {$_TABLES['shop.categories']}
+            self::dbQuery("UPDATE {$_TABLES['shop.categories']}
                     SET image=''
                     WHERE cat_id='" . $this->cat_id . "'");
             Cache::clear('categories');
@@ -553,7 +553,7 @@ class Category
     {
         global $_TABLES;
 
-        return DB_count($_TABLES['shop.prodXcat'], 'cat_id', (int)$cat_id);
+        return self::dbCount($_TABLES['shop.prodXcat'], 'cat_id', (int)$cat_id);
     }
 
 
@@ -576,7 +576,7 @@ class Category
         }
 
         // Check if any categories are under this one.
-        if (DB_count($_TABLES['shop.categories'], 'parent_id', $cat_id) > 0) {
+        if (self::dbCount($_TABLES['shop.categories'], 'parent_id', $cat_id) > 0) {
             return true;
         }
 
@@ -755,7 +755,7 @@ class Category
                 $between
                 GROUP BY node.cat_id, node.cat_name
                 ORDER BY node.lft";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $All[$A['cat_id']] = new self($A['cat_id']);
                 $All[$A['cat_id']]->setDisplayName($A['disp_name']);
@@ -840,7 +840,7 @@ class Category
     {
         global $_TABLES;
 
-        $parent = (int)DB_getItem(
+        $parent = (int)self::dbGetItem(
             $_TABLES['shop.categories'],
             'cat_id',
             'parent_id = 0'
@@ -883,7 +883,7 @@ class Category
         // get all children of this node
         $sql = "SELECT cat_id FROM {$_TABLES['shop.categories']}
                 WHERE parent_id ='$parent'";
-        $result = DB_query($sql);
+        $result = self::dbQuery($sql);
         while ($row = DB_fetchArray($result, false)) {
             // recursive execution of this function for each
             // child of this node
@@ -897,7 +897,7 @@ class Category
         $sql1 = "UPDATE {$_TABLES['shop.categories']}
                 SET lft = '$left', rgt = '$right'
                 WHERE cat_id = '$parent'";
-        DB_query($sql1);
+        self::dbQuery($sql1);
         Cache::clear('categories');
         Cache::clear('sitemap');
 
@@ -1078,7 +1078,7 @@ class Category
         case 'grp_access':
             $fieldvalue = (int)$fieldvalue;
             if (!isset($grp_names[$fieldvalue])) {
-                $grp_names[$fieldvalue] = DB_getItem(
+                $grp_names[$fieldvalue] = self::dbGetItem(
                     $_TABLES['groups'],
                     'grp_name',
                     "grp_id = $fieldvalue"
@@ -1173,7 +1173,7 @@ class Category
         if ($retval === NULL) {
             $sql = "SELECT cat_id FROM {$_TABLES['shop.prodXcat']}
                 WHERE product_id = $prod_id";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $retval[$A['cat_id']] = self::getInstance($A['cat_id']);
             }
@@ -1201,7 +1201,7 @@ class Category
 
         $retval = array();
         $sql = "SELECT cat_id FROM {$_TABLES['shop.categories']}";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         while ($A = DB_fetchArray($res, false)) {
             $retval[$A['cat_id']] = self::getInstance($A['cat_id']);
         }
@@ -1285,7 +1285,7 @@ class Category
         $sql = "INSERT INTO {$_TABLES['shop.prodXcat']} (product_id, cat_id)
             SELECT $dst, cat_id FROM {$_TABLES['shop.prodXcat']}
             WHERE product_id = $src";
-        DB_query($sql, 1);
+        self::dbQuery($sql, 1);
         return DB_error() ? false : true;
     }
 

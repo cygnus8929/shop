@@ -19,6 +19,8 @@ namespace Shop;
  */
 class ShipmentItem
 {
+    use \Shop\Traits\DBO;   // common DB functions
+
     /** Shipment Item record ID.
      * @var integer */
     private $si_id = 0;
@@ -82,7 +84,7 @@ class ShipmentItem
         $sql = "SELECT * FROM {$_TABLES['shop.shipment_items']}
                 WHERE si_id = $rec_id";
         //echo $sql;die;
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res) {
             $this->setVars(DB_fetchArray($res, false));
             return true;
@@ -187,7 +189,7 @@ class ShipmentItem
         $shipment_id = (int)$shipment_id;
         $sql = "SELECT * FROM {$_TABLES['shop.shipment_items']}
             WHERE shipment_id = $shipment_id";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         while ($A = DB_fetchArray($res, false)) {
             $retval[] = new self($A);
         }
@@ -210,7 +212,7 @@ class ShipmentItem
         $oi_id = (int)$oi_id;
         $sql = "SELECT * FROM {$_TABLES['shop.shipment_items']}
             WHERE orderitem_id = $oi_id";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         while ($A = DB_fetchArray($res, false)) {
             $retval[] = new self($A);
         }
@@ -278,7 +280,7 @@ class ShipmentItem
         $sql = $sql1 . $sql2 . $sql3;
         //echo $sql;die;
         SHOP_log($sql, SHOP_LOG_DEBUG);
-        DB_query($sql);
+        self::dbQuery($sql);
         if (!DB_error()) {
             //Cache::deleteOrder($this->order_id);
             if ($this->si_id == 0) {
@@ -301,7 +303,7 @@ class ShipmentItem
     {
         global $_TABLES;
 
-        return (int)DB_getItem(
+        return (int)self::dbGetItem(
             $_TABLES['shop.shipment_items'],
             'SUM(quantity)',
             "orderitem_id = $oi_id"

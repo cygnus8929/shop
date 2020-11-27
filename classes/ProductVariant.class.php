@@ -22,7 +22,7 @@ namespace Shop;
  */
 class ProductVariant
 {
-    use \Shop\Traits\DBO;        // Import database operations
+    use \Shop\Traits\DBO;    // Import common DB actions
 
     /** Key field name.
      * @var string */
@@ -152,7 +152,7 @@ class ProductVariant
         $sql = "SELECT * FROM {$_TABLES['shop.product_variants']}
                 WHERE pv_id = $rec_id";
         //echo $sql;die;
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res) {
             $this->setVars(DB_fetchArray($res, false));
             $this->loadOptions();
@@ -221,7 +221,7 @@ class ProductVariant
             HAVING COUNT(pv.item_id) = $count
             LIMIT 1";
         //echo $sql;
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res) {
             $A = DB_fetchArray($res, false);
             return self::getInstance($A);
@@ -288,7 +288,7 @@ class ProductVariant
                 WHERE vx.pv_id = {$this->getID()}
                 ORDER BY pog.pog_orderby ASC";
                 //echo $sql;die;
-                $res = DB_query($sql);
+                $res = self::dbQuery($sql);
                 while ($A = DB_fetchArray($res, false)) {
                     $this->Options[$A['pog_name']] = new ProductOptionValue($A);
                 }
@@ -562,7 +562,7 @@ class ProductVariant
         $product_id = (int)$product_id;
         $sql = "SELECT * FROM {$_TABLES['shop.product_variants']}
             WHERE item_id = '$product_id'";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         while ($A = DB_fetchArray($res, false)) {
             $retval[] = self::getInstance($A);
         }
@@ -847,7 +847,7 @@ class ProductVariant
                 $sql_vals
                 WHERE pv_id IN ($ids)";
             //echo $sql;die;
-            DB_query($sql);
+            self::dbQuery($sql);
             if (DB_error()) {
                 return false;
             }
@@ -945,6 +945,7 @@ class ProductVariant
                 $sup_ref = $A['pv_supplier_ref'];
             }
 
+            Cache::clear(self::TAG);
             $sql = "INSERT INTO {$_TABLES['shop.product_variants']} SET
                 item_id = $item_id,
                 sku = '" . DB_escapeString($sku) . "',
@@ -957,21 +958,26 @@ class ProductVariant
                 onhand = $onhand";
             //echo $sql;die;
             SHOP_log($sql, SHOP_LOG_DEBUG);
-            DB_query($sql);
+            self::dbQuery($sql, 1);
             if (!DB_error()) {
                 $pv_id = DB_insertID();
                 foreach ($opt_ids as $opt_id) {
                     $vals[] = '(' . $pv_id . ',' . $opt_id . ')';
                 }
+            } else {
+                SHOP_log("Error saving Variant: $sql");
+                return;
             }
         }
         if (!empty($vals)) {
             $sql_vals = implode(',', $vals);
             $sql = "INSERT IGNORE INTO {$_TABLES['shop.variantXopt']}
                 (pv_id, pov_id) VALUES $sql_vals";
-            DB_query($sql);
+            self::dbQuery($sql, 1);
+            if (DB_error()) {
+                SHOP_log("Error saving variant option: $sql");
+            }
         }
-        Cache::clear(self::TAG);
     }
 
 
@@ -1013,7 +1019,7 @@ class ProductVariant
         $sql = $sql1 . $sql2 . $sql3;
         //echo $sql;die;
         SHOP_log($sql, SHOP_LOG_DEBUG);
-        DB_query($sql);
+        self::dbQuery($sql);
         if (!DB_error()) {
             if ($this->pv_id == 0) {
                 $this->pv_id = DB_insertID();
@@ -1045,13 +1051,13 @@ class ProductVariant
                 $sql_vals = implode(',', $vals);
                 $sql = "INSERT IGNORE INTO {$_TABLES['shop.variantXopt']}
                     (pv_id, pov_id) VALUES $sql_vals";
-                DB_query($sql);
+                self::dbQuery($sql);
             }
             if (!empty($removed)) {
                 $removed = implode(',', $removed);
                 $sql = "DELETE FROM {$_TABLES['shop.variantXopt']}
                     WHERE pv_id = " . $this->getID() . " AND pov_id IN ($removed)";
-                DB_query($sql);
+                self::dbQuery($sql);
             }
         }
         Cache::clear(self::TAG);
@@ -1201,7 +1207,7 @@ class ProductVariant
                 FROM {$_TABLES['shop.product_variants']}
                 WHERE item_id= '{$this->item_id}'
                 ORDER BY orderby ASC;";
-        $result = DB_query($sql);
+        $result = self::dbQuery($sql);
 
         $order = 10;        // First orderby value
         $stepNumber = 10;   // Increment amount
@@ -1212,7 +1218,7 @@ class ProductVariant
                 $sql = "UPDATE {$_TABLES['shop.product_variants']}
                     SET orderby = '$order'
                     WHERE pv_id = '{$A['pv_id']}'";
-                DB_query($sql);
+                self::dbQuery($sql);
             }
             $order += $stepNumber;
         }
@@ -1248,7 +1254,7 @@ class ProductVariant
                     SET orderby = orderby $oper 11
                     WHERE pv_id = '{$this->pv_id}'";
             //echo $sql;die;
-            DB_query($sql);
+            self::dbQuery($sql);
             $this->reOrder();
         }
     }
@@ -1339,12 +1345,12 @@ class ProductVariant
                 'sort' => 'false',
                 'align' => 'center',
             );
-            $extra['def_pv_id'] = (int)DB_getItem(
+            $extra['def_pv_id'] = (int)self::dbGetItem(
                 $_TABLES['shop.products'],
                 'def_pv_id',
                 "id = $prod_id"
             );
-            $extra['max_orderby'] = (int)DB_getItem(
+            $extra['max_orderby'] = (int)self::dbGetItem(
                 $_TABLES['shop.product_variants'],
                 'MAX(orderby)',
                 "item_id = $prod_id"
@@ -1692,7 +1698,7 @@ class ProductVariant
         $item_id = (int)$item_id;
         $sql = "SELECT pv_id FROM {$_TABLES['shop.product_variants']}
             WHERE item_id = $item_id";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         while ($A = DB_fetchArray($res, false)) {
             DB_delete($_TABLES['shop.variantXopt'], 'pv_id', (int)$A['pv_id']);
         }
@@ -1744,11 +1750,11 @@ class ProductVariant
                 SELECT $dst, '$sku', price, weight, shipping_units, onhand, reorder, enabled, supplier_ref, img_ids
                 FROM {$_TABLES['shop.product_variants']}
                 WHERE pv_id = {$PV->getID()}";
-            DB_query($sql);
+            self::dbQuery($sql);
             $pv_id = DB_insertID();
             $sql = "INSERT INTO {$_TABLES['shop.variantXopt']} (pv_id, pov_id)
                 SELECT $pv_id, pov_id FROM {$_TABLES['shop.variantXopt']} WHERE pv_id = {$PV->getID()}";
-            DB_query($sql);
+            self::dbQuery($sql);
         }
         Cache::clear('products');
         Cache::clear('options');

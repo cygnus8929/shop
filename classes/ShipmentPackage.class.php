@@ -21,29 +21,31 @@ namespace Shop;
  */
 class ShipmentPackage
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** Package record ID.
      * @var integer */
-    private $pkg_id;
+    private $pkg_id = 0;
 
     /** Record ID of shipment containing this package.
      * @var integer */
-    private $shipment_id;
+    private $shipment_id = 0;
 
     /** Record ID of the shipper for this package.
      * @var integer */
-    private $shipper_id;
+    private $shipper_id = 0;
 
     /** Information about the shipper.
      * @var string */
-    private $shipper_info;
+    private $shipper_info = '';
 
     /** Package tracking number.
      * @var string */
-    private $tracking_num;
+    private $tracking_num = '';
 
     /** General comment entered about the package.
      * @var string */
-    private $comment;
+    private $comment = '';
 
 
     /**
@@ -84,7 +86,7 @@ class ShipmentPackage
         $sql = "SELECT * FROM {$_TABLES['shop.shipment_packages']}
             WHERE shipment_id = $shipment_id
             ORDER BY pkg_id ASC";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         while ($A = DB_fetchArray($res, false)) {
             $retval[] = new self($A);
         }
@@ -106,7 +108,7 @@ class ShipmentPackage
         $sql = "SELECT * FROM {$_TABLES['shop.shipment_packages']}
                 WHERE pkg_id = $rec_id";
         //echo $sql;die;
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res) {
             $this->setVars(DB_fetchArray($res, false));
             return true;
@@ -281,7 +283,7 @@ class ShipmentPackage
         //COM_errorLog($sql);
         //echo $sql;die;
         SHOP_log($sql, SHOP_LOG_DEBUG);
-        DB_query($sql);
+        self::dbQuery($sql);
         if (!DB_error()) {
             if ($this->pkg_id <= 0) {
                 $this->pkg_id = DB_insertID();

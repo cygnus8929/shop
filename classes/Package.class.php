@@ -20,6 +20,8 @@ namespace Shop;
  */
 class Package
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** Package record ID.
      * @var integer */
     private $pkg_id = 0;
@@ -84,7 +86,7 @@ class Package
         } elseif (is_integer($A)) {
             $sql = "SELECT * FROM {$_TABLES['shop.packages']}
                 WHERE pkg_id = " . (int)$A;
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             if ($res) {
                 $A = DB_fetchArray($res, false);
                 $this->setVars($A);
@@ -129,7 +131,7 @@ class Package
 
         $sql = "SELECT * FROM {$_TABLES['shop.packages']}
             WHERE pkg_id = " . (int)$pkg_id;
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res) {
             return new self(DB_fetchArray($res, false));
         } else {
@@ -245,7 +247,7 @@ class Package
             containers = '" . DB_escapeString(json_encode($this->containers)) . "'";
         $sql = $sql1 . $sql2 . $sql3;
         //echo $sql;die;
-        DB_query($sql);
+        self::dbQuery($sql);
         if (DB_error()) {
             SHOP_log("Shipper::saveConfig() error: $sql");
             return false;
@@ -598,7 +600,7 @@ class Package
             $Packages = array();
             $sql = "SELECT * FROM {$_TABLES['shop.packages']}
                 ORDER BY units ASC";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $Packages[] = new self($A);
             }

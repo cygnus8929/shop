@@ -20,6 +20,8 @@ namespace Shop;
  */
 class Country extends RegionBase
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** Country DB table key.
      * @var string */
     protected static $TABLE = 'shop.countries';
@@ -141,7 +143,7 @@ class Country extends RegionBase
             } else {
                 $sql .= "alpha2 = '" . DB_escapeString($code) . "'";
             }
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             if ($res && DB_numRows($res) == 1) {
                 $A = DB_fetchArray($res, false);
             } else {
@@ -424,7 +426,7 @@ class Country extends RegionBase
                     AND r.region_enabled =1";
             }
             $sql .= ' ORDER BY c.country_name ASC';
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $retval[$A['alpha2']] = new self($A);
             }
@@ -546,7 +548,7 @@ class Country extends RegionBase
         $sql = $sql1 . $sql2 . $sql3;
         //var_dump($this);die;
         //echo $sql;die;
-        DB_query($sql, 1);  // suppress errors, show nice error message instead
+        self::dbQuery($sql, 1);  // suppress errors, show nice error message instead
         if (!DB_error()) {
             if ($this->getID() == 0) {
                 $this->setID(DB_insertID());

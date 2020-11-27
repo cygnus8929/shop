@@ -21,6 +21,8 @@ use Shop\Template;
  */
 class table extends \Shop\Tax
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /**
      * Get the tax data for the current address.
      * Returns the "No Nexus" values if an entry is not found in the DB.
@@ -46,7 +48,7 @@ class table extends \Shop\Tax
                 ) ORDER BY zip_from DESC, zip_to ASC
                 LIMIT 1";
             //echo $sql;die;
-            $res = DB_query($sql, 1);
+            $res = self::dbQuery($sql, 1);
             if ($res) {
                 $A = DB_fetchArray($res, false);
                 if ($A) {           // Have to have found a record
@@ -289,7 +291,7 @@ class table extends \Shop\Tax
         if ($code != '') {
             $sql = "SELECT * FROM {$_TABLES['shop.tax_rates']}
                 WHERE code = '" . DB_escapeString($code) . "'";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             if ($res) {
                 $A = DB_fetchArray($res, false);
             }
@@ -351,7 +353,7 @@ class table extends \Shop\Tax
         }
         $sql = "DELETE FROM {$_TABLES['shop.tax_rates']} WHERE code IN ($code_str)";
         //echo $sql;die;
-        DB_query($sql);
+        self::dbQuery($sql);
     }
 
 
@@ -396,7 +398,7 @@ class table extends \Shop\Tax
             county_rate = {$A['county_rate']},
             city_rate = {$A['city_rate']},
             special_rate = {$A['special_rate']}";
-        DB_query($sql);
+        self::dbQuery($sql);
         if (DB_error()) {
             SHOP_log("Error saving tax rate: $sql");
             return false;
@@ -499,7 +501,7 @@ class table extends \Shop\Tax
                         city_rate = $city_rate,
                         special_rate = $special_rate";
 
-                    $result = DB_query($sql);
+                    $result = self::dbQuery($sql);
                     if (!$result) {
                         $failures++;
                     } else {

@@ -20,7 +20,7 @@ namespace Shop;
  */
 class ProductOptionGroup
 {
-    use \Shop\Traits\DBO;        // Import database operations
+    use \Shop\Traits\DBO;    // Import common DB actions
 
     /** Table key, used by DBO class.
      * @var string */
@@ -106,7 +106,7 @@ class ProductOptionGroup
             $retval = array();
             $sql = "SELECT * FROM {$_TABLES['shop.prod_opt_grps']}
                 ORDER BY pog_orderby ASC";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $retval[$A['pog_id']] = new self($A);
             }
@@ -170,7 +170,7 @@ class ProductOptionGroup
             return;
         }
 
-        $result = DB_query(
+        $result = self::dbQuery(
             "SELECT * FROM {$_TABLES['shop.prod_opt_grps']}
             WHERE pog_id='$id'"
         );
@@ -200,7 +200,7 @@ class ProductOptionGroup
         $retval = NULL;
         $sql = "SELECT * FROM {$_TABLES['shop.prod_opt_grps']}
             WHERE pog_name = '" . DB_escapeString($name) . "'";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res) {
             $A = DB_fetchArray($res, false);
             if (!empty($A)) {
@@ -245,7 +245,7 @@ class ProductOptionGroup
             pog_orderby='{$this->pog_orderby}'";
         $sql = $sql1 . $sql2 . $sql3;
         SHOP_log($sql, SHOP_LOG_DEBUG);
-        DB_query($sql, 1);
+        self::dbQuery($sql, 1);
         $err = DB_error();
         if ($err == '') {
             if ($this->isNew) {
@@ -576,7 +576,7 @@ class ProductOptionGroup
                 WHERE pv.item_id = $prod_id AND pv.enabled = 1
                 ORDER BY pog.pog_orderby, pov.orderby asc";
             //echo $sql;die;
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $retval[$prod_id][$A['pog_id']] = new self($A['pog_id']);
                 $retval[$prod_id][$A['pog_id']]->setOptionValues(

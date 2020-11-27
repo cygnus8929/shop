@@ -20,6 +20,8 @@ namespace Shop;
  */
 class OrderItem
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** OrderItem DB record ID.
      * @var integer */
     private $id = 0;
@@ -212,7 +214,7 @@ class OrderItem
         $sql = "SELECT * FROM {$_TABLES['shop.orderitems']}
                 WHERE id = $rec_id";
         //echo $sql;die;
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res) {
             $this->setVars(DB_fetchArray($res, false));
             $this->options = OrderItemOption::getOptionsForItem($this);
@@ -489,7 +491,7 @@ class OrderItem
         }
         $sql = $sql1 . $sql2 . $sql3;
         //SHOP_log($sql, SHOP_LOG_DEBUG);
-        DB_query($sql);
+        self::dbQuery($sql);
         if (!DB_error()) {
             //Cache::deleteOrder($this->order_id);
             if ($this->id == 0) {

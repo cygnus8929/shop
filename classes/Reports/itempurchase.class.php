@@ -19,20 +19,20 @@ namespace Shop\Reports;
  */
 class itempurchase extends \Shop\Report
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** Icon to display on report menu
-     * @var string
-     */
+     * @var string */
     protected $icon = 'shopping-basket';
 
     /** Item ID being reported
-     * @var integer
-     */
-    private $item_id;
+     * @var integer */
+    private $item_id = 0;
 
     /** Item short description for report title
-     * @var string
-     */
-    private $item_dscp;
+     * @var string */
+    private $item_dscp = '';
+
 
     /**
      * Constructor.
@@ -144,7 +144,7 @@ class itempurchase extends \Shop\Report
             break;
         case 'csv':
             $sql .= ' ' . $query_arr['default_filter'];
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             $T->set_block('report', 'ItemRow', 'row');
             $order_date = clone $_CONF['_now'];   // Create an object to be updated later
             while ($A = DB_fetchArray($res, false)) {

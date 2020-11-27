@@ -25,7 +25,7 @@ use Shop\Template;
  */
 class Zone
 {
-    use \Shop\Traits\DBO;        // Import database operations
+    use \Shop\Traits\DBO;    // Import common DB actions
 
     /** Table key for DBO utilities.
      * @var string */
@@ -116,7 +116,7 @@ class Zone
         if ($Rules === NULL) {
             $sql = "SELECT * FROM {$_TABLES['shop.zone_rules']}
                 ORDER BY rule_id ASC";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $Rules[$A['rule_id']] = new self($A);
             }
@@ -139,7 +139,7 @@ class Zone
         $sql = "SELECT * FROM {$_TABLES['shop.zone_rules']}
             WHERE rule_id = $rule_id
             LIMIT 1";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res && DB_numRows($res) == 1) {
             $A = DB_fetchArray($res, false);
             $retval = new self($A);
@@ -373,7 +373,7 @@ class Zone
         $sql = $sql1 . $sql2 . $sql3;
         //echo $sql;die;
         //SHOP_log($sql, SHOP_LOG_DEBUG);
-        DB_query($sql);
+        self::dbQuery($sql);
         if (!DB_error()) {
             if ($this->rule_id == 0) {
                 $this->rule_id = DB_insertID();
@@ -456,7 +456,7 @@ class Zone
         );
         $filter = array();
         $extra = array(
-            'count' => DB_count($_TABLES[static::$TABLE]),
+            'count' => self::dbCount($_TABLES[static::$TABLE]),
         );
         $options = array(
             'chkdelete' => true,

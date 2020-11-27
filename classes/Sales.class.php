@@ -21,6 +21,8 @@ use Shop\Models\Dates;
  */
 class Sales
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** Base tag to use in creating cache IDs.
      * @var string */
     private static $base_tag = 'sales';
@@ -93,7 +95,7 @@ class Sales
         $sql = "SELECT *
                 FROM {$_TABLES['shop.sales']}
                 WHERE id = $id";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res) {
             $A = DB_fetchArray($res, false);
             $this->setVars($A);
@@ -186,7 +188,7 @@ class Sales
                         WHERE item_type = '$type' AND item_id = {$item_id}
                         ORDER BY start ASC";
                 //echo $sql;die;
-                $res = DB_query($sql);
+                $res = self::dbQuery($sql);
                 while ($A = DB_fetchArray($res, false)) {
                     $sales[$type][$item_id][] = new self($A);
                 }
@@ -384,7 +386,7 @@ class Sales
                 amount = '{$this->amount}'";
         $sql = $sql1 . $sql2 . $sql3;
         //echo $sql;die;
-        DB_query($sql);
+        self::dbQuery($sql);
         $err = DB_error();
         if ($err == '') {
             Cache::clear(self::$base_tag);
@@ -429,7 +431,7 @@ class Sales
         $now = $_CONF['_now']->toMySQL(true);
         $sql = "DELETE FROM {$_TABLES['shop.sales']}
                 WHERE end < '$now'";
-        DB_query($sql);
+        self::dbQuery($sql);
     }
 
 
@@ -445,7 +447,7 @@ class Sales
 
         // If there are no products defined, return a formatted error message
         // instead of the form.
-        if (DB_count($_TABLES['shop.products']) == 0) {
+        if (self::dbCount($_TABLES['shop.products']) == 0) {
             return SHOP_errMsg($LANG_SHOP['todo_noproducts']);
         }
 

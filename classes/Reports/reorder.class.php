@@ -5,7 +5,7 @@
  * @author      Lee Garner <lee@leegarner.com>
  * @copyright   Copyright (c) 2020 Lee Garner <lee@leegarner.com>
  * @package     shop
- * @version     v1.2.0
+ * @version     v1.3.0
  * @since       v1.2.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
@@ -19,6 +19,8 @@ namespace Shop\Reports;
  */
 class reorder extends \Shop\Report
 {
+    use \Shop\Traits\DBO;   // common DB functions
+
     /** Icon to display on report menu
      * @var string */
     protected $icon = 'barcode';
@@ -153,7 +155,7 @@ class reorder extends \Shop\Report
             break;
         case 'csv':
             $sql .= ' ' . $query_arr['default_filter'];
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             $T->set_block('report', 'ItemRow', 'row');
             while ($A = DB_fetchArray($res, false)) {
                 $T->set_var(array(
@@ -266,7 +268,7 @@ class reorder extends \Shop\Report
             $retval = $LANG_SHOP['reports_avail'][$this->key]['name'];
         }
         if ($this->supplier_id > 0) {
-            $retval .= ': ' . DB_getItem($_TABLES['shop.suppliers'], 'company', "sup_id={$this->supplier_id}");
+            $retval .= ': ' . self::dbGetItem($_TABLES['shop.suppliers'], 'company', "sup_id={$this->supplier_id}");
         }
         return $retval;
     }

@@ -317,7 +317,7 @@ class Catalog
         $cache_key = Cache::makeKey('prod_cnt_' . $sql_key);
         $count = Cache::get($cache_key);
         if ($count === NULL) {
-            $res = DB_query('SELECT DISTINCT p.id ' . $sql);
+            $res = self::dbQuery('SELECT DISTINCT p.id ' . $sql);
             $count = DB_numRows($res);
             Cache::set($cache_key, $count, array('products', 'categories'));
         }
@@ -345,7 +345,7 @@ class Catalog
         $cache_key = Cache::makeKey('prod_list_' . $sql_key);
         $Products = Cache::get($cache_key);
         if ($Products === NULL) {
-            $res = DB_query('SELECT DISTINCT p.id, p.short_description ' . $sql);
+            $res = self::dbQuery('SELECT DISTINCT p.id, p.short_description ' . $sql);
             $Products = array();
             while ($A = DB_fetchArray($res, false)) {
                 $Products[] = Product::getById($A['id']);

@@ -23,6 +23,8 @@ namespace Shop;
  */
 class Workflow
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** Indicate that this workflow is disabled.
      * @const integer */
     const DISABLED = 0;
@@ -84,7 +86,7 @@ class Workflow
                     FROM {$_TABLES[self::$TABLE]}
                     WHERE enabled > 0
                     ORDER BY id ASC";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $_SHOP_CONF['workflows'][] = $A['wf_name'];
             }
@@ -121,7 +123,7 @@ class Workflow
             $sql = "SELECT * FROM {$_TABLES[self::$TABLE]}
                 $where
                 ORDER BY id ASC";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $workflows[] = new self($A);
             }
@@ -204,7 +206,7 @@ class Workflow
         $sql = "UPDATE {$_TABLES[self::$TABLE]}
                 SET $field = $newvalue
                 WHERE id='$id'";
-        DB_query($sql, 1);
+        self::dbQuery($sql, 1);
         if (!DB_error()) {
             Cache::clear('workflows');
             return $newvalue;

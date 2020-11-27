@@ -21,7 +21,7 @@ namespace Shop;
  */
 class OrderStatus extends Workflow
 {
-    use \Shop\Traits\DBO;        // Import database operations
+    use \Shop\Traits\DBO;
 
     /** Table name.
      * @var string */
@@ -83,7 +83,7 @@ class OrderStatus extends Workflow
                     WHERE enabled = 1
                     ORDER BY orderby ASC";
             //echo $sql;die;
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $statuses[$A['name']] = new self($A);
             }
@@ -191,7 +191,7 @@ class OrderStatus extends Workflow
                 SET $field = $newvalue
                 WHERE id ='$id'";
         //echo $sql;die;
-        DB_query($sql, 1);
+        self::dbQuery($sql, 1);
         if (!DB_error()) {
             return $newvalue;
         } else {

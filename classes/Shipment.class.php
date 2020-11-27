@@ -21,6 +21,8 @@ use Shop\Models\OrderState;
  */
 class Shipment
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** Order object related to this shipment.
      * var object */
     private $Order = NULL;
@@ -112,7 +114,7 @@ class Shipment
         $sql = "SELECT * FROM {$_TABLES['shop.shipments']}
                 WHERE shipment_id = $rec_id";
         //echo $sql;die;
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res) {
             $this->setVars(DB_fetchArray($res, false));
             $this->getItems();
@@ -197,7 +199,7 @@ class Shipment
         $sql = "SELECT * FROM {$_TABLES['shop.shipments']}
             WHERE order_id = '" . DB_escapeString($order_id) . "'
             ORDER BY ts ASC";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         while ($A = DB_fetchArray($res, false)) {
             $retval[] = new self($A);
         }
@@ -284,7 +286,7 @@ class Shipment
         $sql = $sql1 . $sql2 . $sql3;
         //echo $sql;die;
         SHOP_log($sql, SHOP_LOG_DEBUG);
-        DB_query($sql);
+        self::dbQuery($sql);
         if (!DB_error()) {
             $this->shipment_id = DB_insertID();
             foreach ($form['ship_qty'] as $oi_id=>$qty) {
@@ -617,9 +619,9 @@ class Shipment
     {
         global $_TABLES;
 
-        DB_query("TRUNCATE {$_TABLES['shop.shipments']}");
-        DB_query("TRUNCATE {$_TABLES['shop.shipment_items']}");
-        DB_query("TRUNCATE {$_TABLES['shop.shipment_packages']}");
+        self::dbQuery("TRUNCATE {$_TABLES['shop.shipments']}");
+        self::dbQuery("TRUNCATE {$_TABLES['shop.shipment_items']}");
+        self::dbQuery("TRUNCATE {$_TABLES['shop.shipment_packages']}");
     }
 
 

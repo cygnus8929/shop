@@ -25,7 +25,7 @@ use Shop\Models\CustomInfo;;
  */
 class Gateway
 {
-    use \Shop\Traits\DBO;        // Import database operations
+    use \Shop\Traits\DBO;    // Import common DB actions
 
     /** Table key, used by DBO class.
      * @var string */
@@ -189,7 +189,7 @@ class Gateway
             $sql = "SELECT *
                 FROM {$_TABLES['shop.gateways']}
                 WHERE id = '" . DB_escapeString($this->gw_name) . "'";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             if ($res) $A = DB_fetchArray($res, false);
         }
 
@@ -331,7 +331,7 @@ class Gateway
         $pi_name = DB_escapeString($P->getPluginName());
         $item_id = DB_escapeString($P->getItemID());
         $btn_key = DB_escapeString($btn_key);
-        $btn  = DB_getItem($_TABLES['shop.buttons'], 'button',
+        $btn  = self::dbGetItem($_TABLES['shop.buttons'], 'button',
                 "pi_name = '{$pi_name}' AND item_id = '{$item_id}' AND
                 gw_name = '{$this->gw_name}' AND btn_key = '{$btn_key}'");
         return $btn;
@@ -363,7 +363,7 @@ class Gateway
                 button = '{$btn_value}'";
         //echo $sql;die;
         //SHOP_log($sql, SHOP_LOG_DEBUG);
-        DB_query($sql);
+        self::dbQuery($sql);
     }
 
 
@@ -417,7 +417,7 @@ class Gateway
                 WHERE id='$id'";
         //echo $sql;die;
         //SHOP_log($sql, SHOP_LOG_DEBUG);
-        DB_query($sql);
+        self::dbQuery($sql);
         self::ClearButtonCache();   // delete all buttons for this gateway
         if (DB_error()) {
             return false;
@@ -533,7 +533,7 @@ class Gateway
                     config = '" . DB_escapeString($config) . "',
                     services = '" . DB_escapeString($services) . "',
                     grp_access = 1";
-            DB_query($sql);
+            self::dbQuery($sql);
             Cache::clear('gateways');
             return DB_error() ? false : true;
         }
@@ -780,7 +780,7 @@ class Gateway
             }
             //echo $sql;die;
             SHOP_log($sql, SHOP_LOG_DEBUG);
-            DB_query($sql);
+            self::dbQuery($sql);
 
         }   // foreach item
     }
@@ -831,7 +831,7 @@ class Gateway
         /*$ord->tax = $this->pp_data['pmt_tax'];
         $ord->shipping = $this->pp_data['pmt_shipping'];
         $ord->handling = $this->pp_data['pmt_handling'];*/
-        $ord->setBuyerEmail(DB_getItem($_TABLES['users'], 'email', "uid=$uid"));
+        $ord->setBuyerEmail(self::dbGetItem($_TABLES['users'], 'email', "uid=$uid"));
         $ord->setLogUser(COM_getDisplayName($uid) . " ($uid)");
 
         //$order_id = $ord->Save();
@@ -1205,7 +1205,7 @@ class Gateway
             // If not loading all gateways, get just then enabled ones
             if ($enabled) $sql .= ' WHERE enabled=1';
             $sql .= ' ORDER BY orderby';
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $tmp[] = $A;
             }
@@ -1515,7 +1515,7 @@ class Gateway
             FROM {$_TABLES['shop.gateways']} gw
             LEFT JOIN {$_TABLES['groups']} g
                 ON g.grp_id = gw.grp_access";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         while ($A = DB_fetchArray($res, false)) {
             $data_arr[] = array(
                 'id'    => $A['id'],
@@ -1584,7 +1584,7 @@ class Gateway
         );
 
         $extra = array(
-            'gw_count' => DB_count($_TABLES['shop.gateways']),
+            'gw_count' => self::dbCount($_TABLES['shop.gateways']),
         );
 
         $defsort_arr = array(

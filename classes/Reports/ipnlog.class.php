@@ -19,6 +19,8 @@ namespace Shop\Reports;
  */
 class ipnlog extends \Shop\Report
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** Icon to use in report selection.
      * @var string */
     protected $icon = 'money';
@@ -152,7 +154,7 @@ class ipnlog extends \Shop\Report
             break;
         case 'csv':
             $sql .= ' ' . $query_arr['default_filter'];
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             $T->set_block('report', 'ItemRow', 'row');
             while ($A = DB_fetchArray($res, false)) {
                 $T->set_var(array(
@@ -202,7 +204,7 @@ class ipnlog extends \Shop\Report
         }
         $sql = "SELECT * FROM {$_TABLES['shop.ipnlog']}
             WHERE $key = '$val'";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         $A = DB_fetchArray($res, false);
         if (empty($A)) {
             return "Nothing Found";

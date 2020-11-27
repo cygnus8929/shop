@@ -20,6 +20,8 @@ namespace Shop;
  */
 class ProductOptionValue
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** Indicate whether the current object is a new entry or not.
      * @var boolean */
     private $isNew = true;
@@ -122,7 +124,7 @@ class ProductOptionValue
             return;
         }
 
-        $result = DB_query(
+        $result = self::dbQuery(
             "SELECT * FROM {$_TABLES['shop.prod_opt_vals']}
             WHERE pov_id='$id'"
         );
@@ -191,7 +193,7 @@ class ProductOptionValue
                 pov_price='" . (float)$this->pov_price . "'";
         $sql = $sql1 . $sql2 . $sql3;
         //echo $sql;die;
-        DB_query($sql);
+        self::dbQuery($sql);
         $err = DB_error();
         if ($err == '') {
             if ($this->isNew) {
@@ -244,7 +246,7 @@ class ProductOptionValue
 
         $sql = "SELECT pov_id FROM {$_TABLES['shop.prod_opt_vals']}
             WHERE pog_id = " . (int)$og_id;
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         while ($A = DB_fetchArray($sql, false)) {
             self::Delete($A['pov_id']);
         }
@@ -349,7 +351,7 @@ class ProductOptionValue
                 WHERE pog_id= {$pog_id}
                 ORDER BY orderby ASC;";
         //echo $sql;die;
-        $result = DB_query($sql);
+        $result = self::dbQuery($sql);
 
         $order = 10;        // First orderby value
         $stepNumber = 10;   // Increment amount
@@ -360,7 +362,7 @@ class ProductOptionValue
                 $sql = "UPDATE {$_TABLES['shop.prod_opt_vals']}
                     SET orderby = '$order'
                     WHERE pov_id = '{$A['pov_id']}'";
-                DB_query($sql);
+                self::dbQuery($sql);
             }
             $order += $stepNumber;
         }
@@ -398,7 +400,7 @@ class ProductOptionValue
                     SET orderby = orderby $oper 11
                     WHERE pov_id = '{$this->pov_id}'";
             //echo $sql;die;
-            DB_query($sql);
+            self::dbQuery($sql);
             self::reOrder($this->pog_id);
         }
     }
@@ -666,7 +668,7 @@ class ProductOptionValue
             $sql = "SELECT pov.* FROM {$_TABLES['shop.prod_opt_vals']} pov
                 WHERE pov.pog_id = $pog_id
                 ORDER BY pov.orderby ASC";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $opts[$A['pov_id']] = new self($A);
             }
@@ -706,7 +708,7 @@ class ProductOptionValue
                 $sql .= " AND pov.pog_id = '$og_id'";
             }
             $sql .= " ORDER BY pog.pog_orderby, pov.orderby ASC";
-            $result = DB_query($sql);
+            $result = self::dbQuery($sql);
             while ($A = DB_fetchArray($result, false)) {
                 $opts[$A['pov_id']] = new self($A);
             }

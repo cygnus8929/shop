@@ -23,6 +23,8 @@ use Shop\State;
  */
 class tax extends \Shop\Report
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** Report icon name
      * @var string */
     protected $icon = 'institution';
@@ -279,7 +281,7 @@ class tax extends \Shop\Report
         case 'html':
             $this->setExtra('class', __CLASS__);
             // Get the totals, have to use a separate query for this.
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             if ($res) {
                 $A = DB_fetchArray($res, false);
                 $total_sales = $A['total_sales'];
@@ -303,7 +305,7 @@ class tax extends \Shop\Report
             /*$sql .= " {$query_arr['default_filter']}
                 GROUP BY ord.order_id
                 ORDER BY {$defsort_arr['field']} {$defsort_arr['direction']}";*/
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             $T->set_block('report', 'ItemRow', 'row');
             while ($A = DB_fetchArray($res, false)) {
                 if (!empty($A['shipto_company'])) {

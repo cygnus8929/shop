@@ -19,7 +19,7 @@ namespace Shop;
  */
 class Supplier extends Address
 {
-    use \Shop\Traits\DBO;        // Import database operations
+    use \Shop\Traits\DBO;    // Import common DB actions
 
     /** Table name, used by DBO.
      * @var string */
@@ -63,7 +63,7 @@ class Supplier extends Address
         $this->setCountry($_SHOP_CONF['country']);
         $this->setState($_SHOP_CONF['state']);
         if ($this->getID() > 0) {
-            $res = DB_query(
+            $res = self::dbQuery(
                 "SELECT * FROM {$_TABLES['shop.suppliers']}
                 WHERE sup_id = {$this->getID()}"
             );
@@ -337,7 +337,7 @@ class Supplier extends Address
         //var_dump($this);die;
         //echo $sql;die;
         SHOP_log($sql, SHOP_LOG_DEBUG);
-        DB_query($sql);
+        self::dbQuery($sql);
         if (!DB_error()) {
             if ($this->getID() == 0) {
                 $this->setID(DB_insertID());

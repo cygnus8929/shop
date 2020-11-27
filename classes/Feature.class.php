@@ -20,7 +20,7 @@ namespace Shop;
  */
 class Feature
 {
-    use \Shop\Traits\DBO;        // Import database operations
+    use \Shop\Traits\DBO;    // Import common DB actions
 
     /** Table key, used by DBO class.
      * @var string */
@@ -102,7 +102,7 @@ class Feature
         //if ($retval === NULL) {
             $retval = array();
             $sql = "SELECT * FROM {$_TABLES['shop.features']}";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $retval[$A['ft_id']] = new self($A);
             }
@@ -167,7 +167,7 @@ class Feature
             return;
         }
 
-        $result = DB_query(
+        $result = self::dbQuery(
             "SELECT * FROM {$_TABLES['shop.features']}
             WHERE ft_id='$id'
             LIMIT 1"

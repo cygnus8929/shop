@@ -20,6 +20,8 @@ namespace Shop;
  */
 class OrderItemOption
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** TODO remove?
      */
     private $product = NULL;
@@ -101,7 +103,7 @@ class OrderItemOption
         $sql = "SELECT * FROM {$_TABLES['shop.oi_opts']}
                 WHERE oio_id = $rec_id";
         //echo $sql;die;
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if ($res) {
             return $this->setVars(DB_fetchArray($res, false));
         } else {
@@ -171,7 +173,7 @@ class OrderItemOption
             $sql = "SELECT * FROM {$_TABLES['shop.oi_opts']}
                 WHERE oi_id = {$item_id}
                 ORDER BY oio_id ASC";
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $retval[$item_id][] = new self($A);
             }
@@ -199,7 +201,7 @@ class OrderItemOption
             oio_price = '{$this->oio_price}'";
         //echo $sql;die;
         SHOP_log($sql, SHOP_LOG_DEBUG);
-        DB_query($sql, 1);  // ignore dup key issues.
+        self::dbQuery($sql, 1);  // ignore dup key issues.
         if (!DB_error()) {
             if ($this->oio_id == 0) {
                 $this->oio_id = DB_insertID();

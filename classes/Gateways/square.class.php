@@ -5,7 +5,7 @@
  * @author      Lee Garner <lee@leegarner.com>
  * @copyright   Copyright (c) 2018-2020 Lee Garner <lee@leegarner.com>
  * @package     shop
- * @version     v1.2.0
+ * @version     v1.3.0
  * @since       v0.7.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
@@ -32,6 +32,8 @@ use LGLib\NameParser;
  */
 class square extends \Shop\Gateway
 {
+    use \Shop\Traits\DBO;   // common DB functions
+
     /** Square location value.
      * @var string */
     private $loc_id;
@@ -578,7 +580,7 @@ class square extends \Shop\Gateway
         $Customer = $Order->getBillto();
 
         if (empty($Order->getBuyerEmail())) {
-            $email = DB_getItem($_TABLES['users'], 'email', "uid = {$Order->getUid()}");
+            $email = self::dbGetItem($_TABLES['users'], 'email', "uid = {$Order->getUid()}");
             $Order->setBuyerEmail($email);
         }
         $customersApi = $this->_getApiClient()->getCustomersApi();

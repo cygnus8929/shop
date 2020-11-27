@@ -183,36 +183,37 @@ trait DBO
 
 
     /**
-     * Wrapper for `DB_query()`.
+     * Wrapper for `DB_query()` to check that the plugin schema is current.
+     * All queries are executed with `ignore_errors` set to true. Errors
+     * are logged and never interrupt the application.
      *
-     * @param   string  $sql    SQL query
-     * @param   boolean $ig_err True to ignore errors (not used)
-     * @return  mixed   DB_query() result or false if schema is not current
+     * @param   string  $sql    Query to execute
+     * @param   boolean $ig_err Ignore errors (not used)
+     * @return  mixed       DB query result, or false on error
      */
     private static function dbQuery($sql, $ig_err = 1)
     {
+        $res = false;
         if (SHOP_isMinVersion()) {
             $res = DB_query($sql, 1);
-            if (DB_error()) {
+            if (!$res) {
                 SHOP_log(
                     __CLASS__ . '::' . __FUNCTION__ .
-                    " SQL error: $sql"
+                    "SQL error: $sql"
                 );
             }
-        } else {
-            $res = false;
         }
         return $res;
     }
 
 
     /**
-     * Wrapper for `DB_getItem()`.
+     * Wrapper for `DB_getItem()` that first checks that the schema is current.
      *
-     * @param   string  $table  Table name
-     * @param   string  $key    Field name
-     * @param   string  $where  Where clause
-     * @return      DB_getItem() result, false if schema is not current
+     * @param   string  $table  DB Table name
+     * @param   string  $key    Field name to retrieve
+     * @param   string  $where  SQL where clause
+     * @return  mixed       Item value or False if schema not current
      */
     private static function dbGetItem($table, $key, $where='')
     {
@@ -225,12 +226,12 @@ trait DBO
 
 
     /**
-     * Wrapper for `DB_delete()`.
+     * Wrapper for `DB_delete()` that first checks that the schema is current.
      *
-     * @param   string  $table  Table name
+     * @param   string  $table  DB table name
      * @param   string  $key    Field name
-     * @param   mixed   $value  Field value
-     * @return      DB_delete() result, false if schema is not current
+     * @param   string  $value  Field value
+     * @return  mixed       Results from DB_delete() or false if not current
      */
     private static function dbDelete($table, $key, $value)
     {
@@ -243,14 +244,14 @@ trait DBO
 
 
     /**
-     * Wrapper for `DB_count()`.
+     * Wrapper for `DB_count()` that first checks that the schema is current.
      *
-     * @param   string  $table  Table name
+     * @param   string  $table  DB table name
      * @param   string  $key    Optional field name
-     * @param   string  $where  Optional where clause
-     * @return  integer     DB_count() result, false if schema is not current
+     * @param   string  $value  Optional field value
+     * @return  mixed       Results from DB_count() or false if not current
      */
-    private static function dbCount($table, $key='', $where='')
+    private static function dbCount($table, $key=NULL, $where=NULL)
     {
         if (SHOP_isMinVersion()) {
             return DB_count($table, $key, $where);

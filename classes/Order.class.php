@@ -23,7 +23,7 @@ use Shop\Models\CustomInfo;
  */
 class Order
 {
-    use \Shop\Traits\DBO;       // import database operations
+    use \Shop\Traits\DBO;    // Import common DB actions
 
     /** Array of order objects used by getInstance().
      * @var array */
@@ -93,7 +93,7 @@ class Order
 
     /** Currency object, used for formatting amounts.
      * @var object */
-    protected $Currency;
+    protected $Currency = NULL;
 
     /** Statuses that indicate an order is still in a "cart" phase.
      * @var array */
@@ -187,6 +187,10 @@ class Order
      * @var float */
     private $_amt_paid = 0;
 
+    /** Amount paid by gift card.
+     * @var float */
+    private $by_gc = 0;
+
     /** Username to show in log messages.
      * @var string */
     private $log_user = '';
@@ -239,9 +243,6 @@ class Order
             }
             $this->order_date = SHOP_now();
             $this->token = $this->_createToken();
-            $this->shipping = 0;
-            $this->handling = 0;
-            $this->by_gc = 0;
             $this->Billto = new Address;
             $this->Shipto = new Address;
         }
@@ -473,7 +474,6 @@ class Order
                 "billto_country = '" . DB_escapeString($this->Billto->getCountry()) . "'",
                 "billto_zip = '" . DB_escapeString($this->Billto->getPostal()) . "'"
             ) );
-            $this->clearInstance();
         }
         return $this;
     }
@@ -531,7 +531,6 @@ class Order
                 "tax_rate = '{$this->tax_rate}'",
                 "tax = '{$this->tax}'"
             ) );
-            $this->clearInstance();
         }
         $this->setTaxRate(NULL);
         return $this;
@@ -842,11 +841,16 @@ class Order
         $sql = $sql1 . implode(', ', $fields) . $sql2;
         //echo $sql;die;
         //SHOP_log("Save: " . $sql, SHOP_LOG_DEBUG);
-        self::dbQuery($sql);
-        $this->clearInstance();
-        $this->isNew = false;
-        $this->tainted = false;
-        return $this->order_id;
+        self::dbQuery($sql, 1);
+        if (!DB_error()) {
+            $this->clearInstance();
+            $this->isNew = false;
+            $this->tainted = false;
+            return $this->order_id;
+        } else {
+            SHOP_log("Error Saving Order: $sql");
+            return '';
+        }
     }
 
 
@@ -867,7 +871,9 @@ class Order
         }
         $sql = "UPDATE {$_TABLES['shop.orders']} SET $vals
             WHERE order_id = '" . DB_escapeString($this->order_id) . "'";
+        //self::dbQuery($sql);
         self::dbQuery($sql);
+        $this->clearInstance();
         return $this;
     }
 
@@ -1406,6 +1412,7 @@ class Order
                     order_seq = @seqno
                 WHERE order_id = '$db_order_id';
                 COMMIT;";
+            //self::dbQuery($sql);
             self::dbQuery($sql);
             $this->order_seq = (int)self::dbGetItem(
                 $_TABLES['shop.orders'],
@@ -1985,7 +1992,11 @@ class Order
         }
         do {
             $id = COM_sanitizeID($func());
-        } while (self::dbGetItem($_TABLES['shop.orders'], 'order_id', "order_id = '$id'") !== NULL);
+        } while (self::dbGetItem(
+            $_TABLES['shop.orders'],
+            'order_id',
+            "order_id = '$id'"
+        ) !== NULL);
         return $id;
     }
 
@@ -2724,7 +2735,7 @@ class Order
      * Create the complete tag to link to the packing list for this order.
      *
      * @param   string  $order_id   Order ID
-     * @param   string  $target     Target, defaule = "_blank"
+     * @param   string  $target     Target, default = "_blank"
      * @return  string      Complete tag
      */
     public static function linkPackingList($order_id, $target='_blank')
@@ -2748,7 +2759,7 @@ class Order
      *
      * @param   string  $order_id   Order ID
      * @param   string  $token      Access token
-     * @param   string  $target     Target, defaule = "_blank"
+     * @param   string  $target     Target, default = "_blank"
      * @return  string      Complete tag
      */
     public static function linkPrint($order_id, $token='', $target = '_blank')
@@ -3292,12 +3303,23 @@ class Order
     }
 
 
+    /**
+     * Get the shipping method description to display on the order.
+     *
+     * @return  string      Shipping method description
+     */
     public function getShipperDscp()
     {
         return $this->shipping_dscp;
     }
 
 
+    /**
+     * Set the total handling charge.
+     *
+     * @param   float   $amt    Handling charge amount
+     * @return  object  $this
+     */
     public function setHandling($amt)
     {
         $this->handling = (float)$amt;
@@ -3775,5 +3797,3 @@ class Order
     }
 
 }
-
-?>

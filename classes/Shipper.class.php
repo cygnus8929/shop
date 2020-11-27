@@ -22,7 +22,7 @@ use Shop\Models\ShippingQuote;
  */
 class Shipper
 {
-    use \Shop\Traits\DBO;        // Import database operations
+    use \Shop\Traits\DBO;    // Import common DB actions
 
     const TAX_DESTINATION = 1;
     const TAX_ORIGIN = 0;
@@ -217,7 +217,7 @@ class Shipper
                     FROM {$_TABLES['shop.shipping']}
                     WHERE id = $id";
             //echo $sql;die;
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             if ($res) {
                 $A = DB_fetchArray($res, false);
           //      Cache::set($cache_key, $A, self::$base_tag);
@@ -608,7 +608,7 @@ class Shipper
                 $units = (float)$units;
                 $sql .= " AND min_units <= $units AND max_units >= $units";
             }
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             while ($A = DB_fetchArray($res, false)) {
                 $shippers[$A['id']] = $A;
             }
@@ -961,7 +961,7 @@ class Shipper
         $sql = $sql1 . $sql2 . $sql3;
         //echo $sql;die;
         SHOP_log($sql, SHOP_LOG_DEBUG);
-        DB_query($sql);
+        self::dbQuery($sql);
         $err = DB_error();
         if ($err == '') {
             Cache::clear(self::$base_tag);
@@ -1312,7 +1312,7 @@ class Shipper
 
 /*        case 'grp_name':
             if (!isset($grp_names[$fieldvalue])) {
-                $grp_names[$fieldvalue] = DB_getItem($_TABLES['groups'], 'grp_name', "grp_id='" . $fieldvalue ."'");
+                $grp_names[$fieldvalue] = self::dbGetItem($_TABLES['groups'], 'grp_name', "grp_id='" . $fieldvalue ."'");
             }
             $retval = $grp_names[$fieldvalue];
             break;
@@ -1458,9 +1458,9 @@ class Shipper
         global $_TABLES;
 
         $shipper_id = (int)$shipper_id;
-        if (DB_count($_TABLES['shop.orders'], 'shipper_id', $shipper_id) > 0) {
+        if (self::dbCount($_TABLES['shop.orders'], 'shipper_id', $shipper_id) > 0) {
             return true;
-        } elseif (DB_count($_TABLES['shop.shipment_packages'], 'shipper_id', $shipper_id) > 0) {
+        } elseif (self::dbCount($_TABLES['shop.shipment_packages'], 'shipper_id', $shipper_id) > 0) {
             return true;
         } else {
             return false;
@@ -1478,7 +1478,7 @@ class Shipper
         global $_TABLES;
 
         $code = DB_escapeString($this->key);
-        $data = DB_getItem(
+        $data = self::dbGetItem(
             $_TABLES['shop.carrier_config'],
             'data',
             "code = '$code'"
@@ -1655,7 +1655,7 @@ class Shipper
             data = '$data'
             ON DUPLICATE KEY UPDATE data = '$data'";
         //echo $sql;die;
-        DB_query($sql);
+        self::dbQuery($sql);
         if (DB_error()) {
             SHOP_log("Shipper::saveConfig() error: $sql");
             return false;

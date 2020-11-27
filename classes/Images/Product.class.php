@@ -5,7 +5,7 @@
  * @author      Lee Garner <lee@leegarner.com>
  * @copyright   Copyright (c) 2019-2020 Lee Garner <lee@leegarner.com>
  * @package     shop
- * @version     v1.2.0
+ * @version     v1.3.0
  * @since       v1.0.0
  * @license     http://opensource.org/licenses/gpl-2.0.php
  *              GNU Public License v2 or later
@@ -20,6 +20,8 @@ namespace Shop\Images;
  */
 class Product extends \Shop\Image
 {
+    use \Shop\Traits\DBO;   // common DB functions
+
     /** Key into $_SHOP_CONF where the image path can be found.
      * @var string */
     static $pathkey = 'products';
@@ -72,7 +74,7 @@ class Product extends \Shop\Image
                 nonce = '" . DB_escapeString($this->nonce) . "',
                 filename = '" . DB_escapeString($basename) . "'";
             SHOP_log($sql, SHOP_LOG_DEBUG);
-            $result = DB_query($sql);
+            $result = self::dbQuery($sql);
             if (!$result) {
                 $this->_addError("uploadFiles() : Failed to insert {$filename}");
             } else {
@@ -99,7 +101,7 @@ class Product extends \Shop\Image
         if ($img_id < 1) {
             return false;
         }
-        $filename = DB_getItem(
+        $filename = self::dbGetItem(
             $_TABLES['shop.images'],
             'filename',
             "img_id = '$img_id'"
@@ -108,7 +110,7 @@ class Product extends \Shop\Image
             return false;
         }
         // Delete the image file only if it is not used by another product.
-        if (DB_count($_TABLES['shop.images'], 'filename', $filename) == 1) {
+        if (self::dbCount($_TABLES['shop.images'], 'filename', $filename) == 1) {
             $img_file = $_SHOP_CONF['image_dir'] . '/' . $filename;
             if (is_file($img_file)) {
                 @unlink($img_file);
@@ -137,7 +139,7 @@ class Product extends \Shop\Image
         $sql = "UPDATE {$_TABLES['shop.images']}
             SET orderby = 5
             WHERE product_id = $prod_id AND img_id = $img_id";
-        DB_query($sql);
+        self::dbQuery($sql);
         if (DB_error()) {
             return false;
         }
@@ -160,7 +162,7 @@ class Product extends \Shop\Image
                 FROM {$_TABLES['shop.images']}
                 WHERE product_id = $prod_id
                 ORDER BY orderby, img_id ASC";
-        $result = DB_query($sql);
+        $result = self::dbQuery($sql);
 
         $order = 10;        // First orderby value
         $stepNumber = 10;   // Increment amount
@@ -171,7 +173,7 @@ class Product extends \Shop\Image
                 $sql = "UPDATE {$_TABLES['shop.images']}
                     SET orderby = '$order'
                     WHERE img_id = '{$A['img_id']}'";
-                DB_query($sql);
+                self::dbQuery($sql);
             }
             $order += $stepNumber;
         }
@@ -196,7 +198,7 @@ class Product extends \Shop\Image
             $sql = "UPDATE {$_TABLES['shop.images']}
                 SET orderby = $orderby
                 WHERE img_id = $id";
-            DB_query($sql, 1);
+            self::dbQuery($sql, 1);
         }
     }
 
@@ -218,7 +220,7 @@ class Product extends \Shop\Image
         $sql = "UPDATE {$_TABLES['shop.images']}
             SET product_id = '$item_id'
             WHERE nonce = '$nonce'";
-        DB_query($sql);
+        self::dbQuery($sql);
     }
 
 
@@ -233,7 +235,7 @@ class Product extends \Shop\Image
 
         $sql = "SELECT img_id FROM {$_TABLES['shop.images']}
             WHERE product_id = 0 AND last_update < DATE_SUB(NOW(), INTERVAL 90 minute)";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         while ($A = DB_fetchArray($res, false)) {
             self::DeleteImage($A['img_id']);
         }
@@ -252,7 +254,7 @@ class Product extends \Shop\Image
         $img_id = (int)$img_id;
         $sql = "SELECT filename FROM {$_TABLES['shop.images']}
             WHERE img_id = $img_id";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         if (DB_numRows($res) == 1) {
             $A = DB_fetchArray($res, false);
             $filespec = $_SHOP_CONF['image_dir'] . DIRECTORY_SEPARATOR . $A['filename'];
@@ -283,7 +285,7 @@ class Product extends \Shop\Image
             (product_id, orderby, filename)
             SELECT $dst, orderby, filename FROM {$_TABLES['shop.images']}
             WHERE product_id = $src";
-        DB_query($sql, 1);
+        self::dbQuery($sql, 1);
         return DB_error() ? false : true;
     }
 

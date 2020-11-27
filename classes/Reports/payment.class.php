@@ -22,6 +22,8 @@ use Shop\Currency;
  */
 class payment extends \Shop\Report
 {
+    use \Shop\Traits\DBO;   // common DB operations
+
     /** Icon to use in report selection.
      * @var string */
     protected $icon = 'money';
@@ -198,7 +200,7 @@ class payment extends \Shop\Report
         case 'csv':
             $total_paid = 0;
             $sql .= ' ' . $query_arr['default_filter'];
-            $res = DB_query($sql);
+            $res = self::dbQuery($sql);
             $T->set_block('report', 'ItemRow', 'row');
             while ($A = DB_fetchArray($res, false)) {
                 $T->set_var(array(
@@ -244,7 +246,7 @@ class payment extends \Shop\Report
             LEFT JOIN {$_TABLES['shop.ipnlog']} ipn
             ON ipn.txn_id = pmts.pmt_ref_id
             WHERE pmts.pmt_id = '$pmt_id'";
-        $res = DB_query($sql);
+        $res = self::dbQuery($sql);
         $A = DB_fetchArray($res, false);
         if (empty($A)) {
             return "Nothing Found";
